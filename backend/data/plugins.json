@@ -1,0 +1,55 @@
+[
+  {
+    "id": "calculator",
+    "name": "Calculator",
+    "description": "Thực hiện các phép toán cơ bản cộng và nhân hai số.",
+    "type": "builtin",
+    "install": null,
+    "url": null,
+    "installed": true,
+    "enabled": true,
+    "tools": [
+      "add",
+      "multiply"
+    ]
+  },
+  {
+    "id": "websearch",
+    "name": "Web Search (DuckDuckGo)",
+    "description": "Tìm kiếm thông tin trên Internet qua DuckDuckGo.",
+    "type": "builtin",
+    "install": null,
+    "url": null,
+    "installed": true,
+    "enabled": true,
+    "tools": [
+      "search"
+    ]
+  },
+  {
+    "id": "fetch_content",
+    "name": "URL Content Fetcher",
+    "description": "Tải và trích xuất nội dung văn bản thô từ địa chỉ URL.",
+    "type": "builtin",
+    "install": null,
+    "url": null,
+    "installed": true,
+    "enabled": true,
+    "tools": [
+      "fetch_content"
+    ]
+  },
+  {
+    "id": "time",
+    "name": "System Clock",
+    "description": "Lấy ngày giờ hiện tại của hệ thống.",
+    "type": "builtin",
+    "install": null,
+    "url": null,
+    "installed": true,
+    "enabled": true,
+    "tools": [
+      "get_current_time"
+    ]
+  }
+]

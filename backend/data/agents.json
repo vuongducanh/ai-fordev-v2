@@ -1,0 +1,145 @@
+[
+  {
+    "id": "researcher",
+    "enabled": true,
+    "installed": true,
+    "card": {
+      "name": "Researcher",
+      "description": "Chuyên gia nghiên cứu, phân tích thông tin sâu sắc và tìm kiếm web.",
+      "skills": [
+        {
+          "id": "analyze",
+          "name": "Nghiên cứu & Phân tích",
+          "description": "Nghiên cứu các chủ đề phức tạp, tóm tắt bài báo, giải thích các khái niệm khoa học.",
+          "tags": [
+            "research",
+            "websearch",
+            "explain"
+          ],
+          "examples": []
+        }
+      ]
+    },
+    "llm": {
+      "provider": "ollama",
+      "model": "qwen2.5:7b",
+      "system_prompt": "Bạn là chuyên gia nghiên cứu. Hãy trả lời chi tiết, chính xác dựa trên dữ liệu thực tế và thông tin tìm kiếm được. Tránh suy diễn vô căn cứ.",
+      "temperature": 0.4,
+      "top_p": 0.9,
+      "top_k": 40,
+      "num_ctx": 8192,
+      "thinking": false,
+      "vision": false
+    },
+    "plugins": [
+      "time",
+      "websearch",
+      "fetch_content"
+    ]
+  },
+  {
+    "id": "coder",
+    "enabled": true,
+    "installed": true,
+    "card": {
+      "name": "Coder",
+      "description": "Chuyên gia lập trình, viết code, sửa lỗi và tối ưu thuật toán.",
+      "skills": [
+        {
+          "id": "code",
+          "name": "Viết & Sửa Code",
+          "description": "Giải quyết các bài toán lập trình, viết unit test, giải thích thuật toán.",
+          "tags": [
+            "coding",
+            "debugging",
+            "algorithms"
+          ],
+          "examples": []
+        }
+      ]
+    },
+    "llm": {
+      "provider": "ollama",
+      "model": "qwen2.5:7b",
+      "system_prompt": "Bạn là một lập trình viên siêu cấp. Hãy viết mã nguồn rõ ràng, tối ưu, có giải thích ngắn gọn bằng tiếng Việt.",
+      "temperature": 0.2,
+      "top_p": 0.9,
+      "top_k": 40,
+      "num_ctx": 8192,
+      "thinking": false,
+      "vision": false
+    },
+    "plugins": [
+      "calculator"
+    ]
+  },
+  {
+    "id": "translator",
+    "enabled": true,
+    "installed": false,
+    "card": {
+      "name": "Translator",
+      "description": "Chuyên gia dịch thuật đa ngôn ngữ có độ chính xác cao.",
+      "skills": [
+        {
+          "id": "translate",
+          "name": "Dịch Thuật",
+          "description": "Dịch văn bản giữa các ngôn ngữ khác nhau, giữ nguyên ngữ cảnh và văn phong.",
+          "tags": [
+            "translation",
+            "language",
+            "multilingual"
+          ],
+          "examples": []
+        }
+      ]
+    },
+    "llm": {
+      "provider": "ollama",
+      "model": "gemma3:1b",
+      "system_prompt": "Bạn là chuyên gia dịch thuật. Hãy dịch văn bản một cách tự nhiên, chính xác, tôn trọng ngữ cảnh bản gốc.",
+      "temperature": 0.3,
+      "top_p": 0.95,
+      "top_k": 40,
+      "num_ctx": 4096,
+      "thinking": false,
+      "vision": false
+    },
+    "plugins": []
+  },
+  {
+    "id": "designer",
+    "enabled": true,
+    "installed": false,
+    "card": {
+      "name": "Designer",
+      "description": "Chuyên gia tư vấn thiết kế giao diện (UI/UX), bố cục và phân tích hình ảnh.",
+      "skills": [
+        {
+          "id": "design",
+          "name": "Tư vấn UI/UX",
+          "description": "Tư vấn thiết kế, chọn màu sắc, phân tích cấu trúc trang web và giao diện người dùng từ hình ảnh.",
+          "tags": [
+            "uiux",
+            "vision",
+            "layout",
+            "colors"
+          ],
+          "examples": []
+        }
+      ]
+    },
+    "llm": {
+      "provider": "ollama",
+      "model": "qwen2.5vl:3b",
+      "system_prompt": "Bạn là chuyên gia thiết kế giao diện người dùng và trải nghiệm (UI/UX). Hãy phân tích và đưa ra giải pháp thiết kế tối ưu, hiện đại, thẩm mỹ.",
+      "temperature": 0.5,
+      "top_p": 0.9,
+      "top_k": 40,
+      "num_ctx": 8192,
+      "thinking": false,
+      "vision": true
+    },
+    "plugins": []
+  }
+]
