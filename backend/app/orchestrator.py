@@ -52,24 +52,22 @@ def runtime_snapshot(cands: List[Dict[str, Any]]) -> Dict[str, Any]:
 
 async def _route_decision(user_text: str, history: List[Dict[str, Any]], cands: List[Dict[str, Any]]) -> List[Tuple[str, str]]:
     """Analyzes prompt text and decides which specialized agents should handle subtasks."""
-    # 1. Vision Guard check
-    if not _DESIGN_INTENT.search(user_text):
-        cands = [c for c in cands if not c.get("llm", {}).get("vision", False)]
-        
-    if not cands:
-        return []
-        
-    # 2. Mention check
+    # 1. Mention check — honor explicit @agent mentions (do not filter by vision)
     mentions = []
     for c in cands:
         mention_token = f"@{c['id']}"
         if mention_token in user_text:
             cleaned_prompt = user_text.replace(mention_token, "").strip()
             mentions.append((c["id"], cleaned_prompt if cleaned_prompt else user_text))
-            
     if mentions:
         return mentions[:MAX_AGENTS]
-        
+
+    # 2. Vision Guard check — remove vision-capable agents for non-design queries
+    if not _DESIGN_INTENT.search(user_text):
+        cands = [c for c in cands if not c.get("llm", {}).get("vision", False)]
+    if not cands:
+        return []
+    
     # 3. LLM Router decision
     cfg = orch_config()
     snapshot = runtime_snapshot(cands)
