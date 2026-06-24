@@ -69,6 +69,7 @@ async def _route_decision(user_text: str, history: List[Dict[str, Any]], cands: 
     snapshot = runtime_snapshot(cands)
     agent_ids = [c["id"] for c in cands]
     
+    # schema dùng để ép LLM trả về JSON đúng cấu trúc mà code có thể parse được.
     schema = {
         "type": "object",
         "properties": {

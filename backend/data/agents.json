@@ -65,7 +65,7 @@
   },
   {
     "id": "CONTENT_CREATOR_AGENT",
-    "enabled": false,
+    "enabled": true,
     "installed": true,
     "card": {
       "name": "Chuyên Gia Sáng Tạo Nội Dung",
