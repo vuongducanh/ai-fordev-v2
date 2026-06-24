@@ -176,7 +176,7 @@ export const AgentsView: React.FC<AgentsViewProps> = ({ ollamaModels, pluginsLis
             <Cpu className="w-6 h-6 text-indigo-400" />
             Quản lý Backend Agents (BE)
           </h1>
-          <p className="text-sm text-slate-400">Thiết lập cấu hình LLM, Prompt, hệ thống MCP plugin và bật/tắt endpoint A2A của từng Agent chuyên môn.</p>
+          <p className="text-sm text-slate-400">Thiết lập cấu hình LLM, Prompt, bật/tắt endpoint A2A của từng Agent chuyên môn.</p>
         </div>
         
         <button
