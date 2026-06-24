@@ -89,17 +89,6 @@ export default function App() {
           </button>
 
           <button
-            onClick={() => setActiveTab("plugins")}
-            className={`p-3 rounded-xl transition-all cursor-pointer relative ${
-              activeTab === "plugins"
-                ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/20"
-                : "text-slate-500 hover:text-slate-300 hover:bg-slate-900"
-            }`}
-          >
-            <Terminal className="w-5 h-5" />
-          </button>
-
-          <button
             onClick={() => setActiveTab("settings")}
             className={`p-3 rounded-xl transition-all cursor-pointer relative ${
               activeTab === "settings"
@@ -108,17 +97,6 @@ export default function App() {
             }`}
           >
             <SettingsIcon className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Bottom Catalog Hub button */}
-        <div>
-          <button
-            onClick={() => setIsRegistryOpen(true)}
-            className="p-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-indigo-400 hover:text-indigo-300 border border-indigo-950 transition-all cursor-pointer shadow-md hover:shadow-indigo-500/10"
-            title="Thư viện Hub A2A"
-          >
-            <Sparkles className="w-5 h-5 animate-pulse" />
           </button>
         </div>
 

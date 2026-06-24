@@ -244,24 +244,6 @@ export const AgentsView: React.FC<AgentsViewProps> = ({ ollamaModels, pluginsLis
                   className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 resize-none font-mono"
                 />
               </div>
-
-              {/* Plugin Selection Checklist */}
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-slate-400 uppercase block">Kích hoạt Plugins cho Agent</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {pluginsList.map(p => (
-                    <label key={p.id} className="flex items-center gap-2 p-2 bg-slate-950/40 border border-slate-800/80 rounded-lg text-xs text-slate-300 cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        checked={form.plugins.includes(p.id)}
-                        onChange={() => handlePluginToggle(p.id)}
-                        className="rounded border-slate-800 bg-slate-900 text-indigo-500 focus:ring-indigo-500"
-                      />
-                      <span className="truncate">{p.name}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
             </div>
 
             <div className="space-y-4">
@@ -291,71 +273,6 @@ export const AgentsView: React.FC<AgentsViewProps> = ({ ollamaModels, pluginsLis
                 </select>
               </div>
 
-              {/* Toggles */}
-              <div className="space-y-2 pt-2">
-                <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={form.thinking}
-                    onChange={e => setForm(prev => ({ ...prev, thinking: e.target.checked }))}
-                    className="rounded border-slate-800 bg-slate-900 text-indigo-500 focus:ring-indigo-500"
-                  />
-                  <span>Tắt Thinking Blocks (qwen3)</span>
-                </label>
-                
-                <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={form.vision}
-                    onChange={e => setForm(prev => ({ ...prev, vision: e.target.checked }))}
-                    className="rounded border-slate-800 bg-slate-900 text-indigo-500 focus:ring-indigo-500"
-                  />
-                  <span>Hỗ trợ Hình ảnh (Vision)</span>
-                </label>
-              </div>
-
-            </div>
-          </div>
-
-          {/* Sampling Parameters */}
-          <div className="grid grid-cols-3 gap-4 border-t border-slate-800/80 pt-4">
-            <div className="space-y-1">
-              <div className="flex justify-between text-[11px] font-semibold text-slate-400 uppercase">
-                <span>Temperature</span>
-                <span className="font-mono text-indigo-400">{form.temperature}</span>
-              </div>
-              <input
-                type="range" min="0" max="1" step="0.05"
-                value={form.temperature}
-                onChange={e => setForm(prev => ({ ...prev, temperature: parseFloat(e.target.value) }))}
-                className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
-              />
-            </div>
-            
-            <div className="space-y-1">
-              <div className="flex justify-between text-[11px] font-semibold text-slate-400 uppercase">
-                <span>Top P</span>
-                <span className="font-mono text-indigo-400">{form.top_p}</span>
-              </div>
-              <input
-                type="range" min="0" max="1" step="0.05"
-                value={form.top_p}
-                onChange={e => setForm(prev => ({ ...prev, top_p: parseFloat(e.target.value) }))}
-                className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <div className="flex justify-between text-[11px] font-semibold text-slate-400 uppercase">
-                <span>Top K</span>
-                <span className="font-mono text-indigo-400">{form.top_k}</span>
-              </div>
-              <input
-                type="range" min="1" max="100" step="1"
-                value={form.top_k}
-                onChange={e => setForm(prev => ({ ...prev, top_k: parseInt(e.target.value) }))}
-                className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
-              />
             </div>
           </div>
 
