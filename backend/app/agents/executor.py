@@ -54,31 +54,25 @@ class AgentLLMExecutor(AgentExecutor):
             user_content = llm.build_user_content(prompt_text, images)
             messages.append({"role": "user", "content": user_content})
 
-            # 4. Run execution
+            # 4. Run execution.
+            #    The orchestrator calls this agent via non-streaming SendMessage and
+            #    reads result["parts"], so we respond in a2a "message mode": accumulate
+            #    the full reply and enqueue a single Message (no Task / status events,
+            #    which would put us in task mode and be rejected).
             plugins = agent.get("plugins", [])
             reply_text = ""
-            
+
             if plugins:
                 # Agent has plugins: run non-streaming with tools RAG loop
                 reply_text = await run_with_tools(agent, messages)
             else:
-                # Agent has no plugins: stream text directly and emit WORKING status deltas
+                # Agent has no plugins: stream text and accumulate the full reply
                 text_accum = []
                 async for delta in llm.stream_text(agent["llm"], messages):
                     text_accum.append(delta)
-                    # Emit delta token via WORKING state event
-                    status_ev = pb.TaskStatusUpdateEvent(
-                        task_id=context.task_id,
-                        context_id=context.context_id,
-                        status=pb.TaskStatus(
-                            state=pb.TASK_STATE_WORKING,
-                            message=delta
-                        )
-                    )
-                    await event_queue.enqueue_event(status_ev)
                 reply_text = "".join(text_accum)
 
-            # 5. Emit final completed message
+            # 5. Emit the final reply as a single Message (message mode)
             final_message = pb.Message(
                 task_id=context.task_id,
                 context_id=context.context_id,
@@ -86,29 +80,9 @@ class AgentLLMExecutor(AgentExecutor):
             )
             await event_queue.enqueue_event(final_message)
 
-            # Emit final completed status event to update task state cleanly
-            complete_status = pb.TaskStatusUpdateEvent(
-                task_id=context.task_id,
-                context_id=context.context_id,
-                status=pb.TaskStatus(
-                    state=pb.TASK_STATE_COMPLETED,
-                    message=reply_text
-                )
-            )
-            await event_queue.enqueue_event(complete_status)
-
         except Exception as e:
             logger.exception("AgentLLMExecutor execution failed: %s", e)
-            # Emit failure status event
-            fail_status = pb.TaskStatusUpdateEvent(
-                task_id=context.task_id,
-                context_id=context.context_id,
-                status=pb.TaskStatus(
-                    state=pb.TASK_STATE_FAILED,
-                    message=str(e)
-                )
-            )
-            await event_queue.enqueue_event(fail_status)
+            # Re-raise so the caller receives a JSON-RPC error and can fall back.
             raise e
 
     async def cancel(self, context: RequestContext, event_queue: EventQueue) -> None:

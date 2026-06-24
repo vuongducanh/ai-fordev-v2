@@ -1,6 +1,6 @@
 {
   "orchestrator": {
-    "model": "deepseek-r1:8b",
+    "model": "qwen3:1.7b",
     "temperature": 0,
     "top_p": 0.9,
     "top_k": 40
