@@ -94,5 +94,37 @@
       "vision": false
     },
     "plugins": []
+  },
+  {
+    "id": "CODE_REVIEWER_AGENT",
+    "enabled": true,
+    "installed": true,
+    "card": {
+      "name": "Chuyên Gia Review Code",
+      "description": "Chuyên đánh giá chất lượng mã nguồn, tìm lỗi, vấn đề bảo mật và đề xuất cải tiến.",
+      "skills": [
+        {
+          "id": "general",
+          "name": "Kỹ năng tổng hợp",
+          "description": "Chuyên đánh giá chất lượng mã nguồn, tìm lỗi, vấn đề bảo mật và đề xuất cải tiến.",
+          "tags": [
+            "general"
+          ],
+          "examples": []
+        }
+      ]
+    },
+    "llm": {
+      "provider": "ollama",
+      "model": "deepseek-r1:8b",
+      "system_prompt": "Bạn là Senior Software Engineer. Hãy review code, phát hiện bug, đánh giá hiệu năng và bảo mật, đồng thời đề xuất hướng refactor.",
+      "temperature": 0.6,
+      "top_p": 0.9,
+      "top_k": 40,
+      "num_ctx": 2048,
+      "thinking": false,
+      "vision": false
+    },
+    "plugins": []
   }
 ]
