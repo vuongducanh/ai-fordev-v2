@@ -147,15 +147,36 @@ async def call_agent(http_client: httpx.AsyncClient, port: int, agent: Dict[str,
             }
         }
     }
-    headers = {"X-Agent-ID": agent_id}
-    resp = await http_client.post(url, json=payload, headers=headers, timeout=120.0)
-    resp.raise_for_status()
-    data = resp.json()
-    if "error" in data:
-        raise ValueError(f"Agent JSON-RPC error: {data['error']}")
-    result = data.get("result", {})
-    parts = result.get("parts", [])
-    return "".join(p.get("text", "") for p in parts if p.get("text"))
+    headers = {"X-Agent-ID": agent_id, "A2A-Version": "1.0"}
+    try:
+        resp = await http_client.post(url, json=payload, headers=headers, timeout=120.0)
+        resp.raise_for_status()
+        data = resp.json()
+        if "error" in data:
+            # Agent returned JSON-RPC error; raise to be handled below
+            raise ValueError(f"Agent JSON-RPC error: {data['error']}")
+        result = data.get("result", {})
+        parts = result.get("parts", [])
+        return "".join(p.get("text", "") for p in parts if p.get("text"))
+    except Exception as e:
+        # If agent fails due to protocol/version or other agent runtime errors,
+        # fallback to using the orchestrator's LLM with the agent's system_prompt
+        logger.warning(f"Agent {agent_id} call failed, falling back to local LLM: {e}")
+        try:
+            cfg = {
+                "model": agent.get("llm", {}).get("model", "qwen3:4b"),
+                "temperature": agent.get("llm", {}).get("temperature", 0.3),
+                "top_p": agent.get("llm", {}).get("top_p", 0.9),
+                "top_k": agent.get("llm", {}).get("top_k", 40)
+            }
+            sys_prompt = agent.get("llm", {}).get("system_prompt", "Bạn là trợ lý.")
+            messages = [llm.system_message(sys_prompt), {"role": "user", "content": prompt}]
+            # Use chat_text (non-streaming) fallback
+            text = await llm.chat_text(cfg, messages)
+            return text
+        except Exception as e2:
+            logger.exception(f"Fallback local LLM also failed for agent {agent_id}: {e2}")
+            raise e
 
 async def _run_agents(cands: List[Dict[str, Any]], decisions: List[Tuple[str, str]], port: int, app: FastAPI) -> Dict[str, str]:
     """Triggers multiple agents parallel execution inside ASGITransport."""
