@@ -384,124 +384,127 @@ export const AgentsView: React.FC<AgentsViewProps> = ({ ollamaModels, pluginsLis
           <p className="text-sm text-slate-400">Đang tải danh sách Agent...</p>
         </div>
       ) : (
-        <div className="grid md:grid-cols-2 gap-6">
-          {agents.map((a) => {
-            const state = installStates[a.id];
-            return (
-              <div key={a.id} className="p-6 bg-slate-900/60 border border-slate-800 hover:border-slate-800/80 rounded-2xl backdrop-blur-md flex flex-col justify-between space-y-5 transition-all">
-                <div className="space-y-4">
-                  {/* Name and Action buttons */}
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-white text-lg">{a.card.name}</h3>
-                        <span className="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded font-mono select-all">@{a.id}</span>
+        // Scrollable wrapper to allow scrolling when many agents are present
+        <div className="max-h-[60vh] overflow-y-auto pr-2">
+          <div className="grid md:grid-cols-2 gap-6">
+            {agents.map((a) => {
+              const state = installStates[a.id];
+              return (
+                <div key={a.id} className="p-6 bg-slate-900/60 border border-slate-800 hover:border-slate-800/80 rounded-2xl backdrop-blur-md flex flex-col justify-between space-y-5 transition-all">
+                  <div className="space-y-4">
+                    {/* Name and Action buttons */}
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-white text-lg">{a.card.name}</h3>
+                          <span className="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded font-mono select-all">@{a.id}</span>
+                        </div>
+                        <span className="text-[11px] text-slate-500 font-mono flex items-center gap-1">
+                          <Cpu className="w-3.5 h-3.5 text-indigo-400" />
+                          {a.llm.model}
+                        </span>
                       </div>
-                      <span className="text-[11px] text-slate-500 font-mono flex items-center gap-1">
-                        <Cpu className="w-3.5 h-3.5 text-indigo-400" />
-                        {a.llm.model}
-                      </span>
+
+                      <button
+                        onClick={() => handleDeleteAgent(a.id)}
+                        className="text-slate-500 hover:text-red-400 p-1.5 rounded-lg hover:bg-red-500/10 transition-all cursor-pointer"
+                      >
+                        <Trash2 className="w-4.5 h-4.5" />
+                      </button>
                     </div>
 
-                    <button
-                      onClick={() => handleDeleteAgent(a.id)}
-                      className="text-slate-500 hover:text-red-400 p-1.5 rounded-lg hover:bg-red-500/10 transition-all cursor-pointer"
-                    >
-                      <Trash2 className="w-4.5 h-4.5" />
-                    </button>
-                  </div>
+                    <p className="text-xs text-slate-400 leading-relaxed">{a.card.description}</p>
 
-                  <p className="text-xs text-slate-400 leading-relaxed">{a.card.description}</p>
-
-                  {/* Skills tags */}
-                  {a.card.skills && a.card.skills.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5">
-                      {a.card.skills[0]?.tags?.map(tag => (
-                        <span key={tag} className="text-[10px] bg-slate-950 text-indigo-400 border border-indigo-950 px-2 py-0.5 rounded-full">{tag}</span>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Active plugins indicators */}
-                  {a.plugins && a.plugins.length > 0 && (
-                    <div className="space-y-1 pt-1">
-                      <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Plugins liên kết:</span>
-                      <div className="flex flex-wrap gap-1">
-                        {a.plugins.map(pid => (
-                          <span key={pid} className="text-[10px] font-mono bg-slate-950 text-slate-300 px-2 py-0.5 rounded border border-slate-800">{pid}</span>
+                    {/* Skills tags */}
+                    {a.card.skills && a.card.skills.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {a.card.skills[0]?.tags?.map(tag => (
+                          <span key={tag} className="text-[10px] bg-slate-950 text-indigo-400 border border-indigo-950 px-2 py-0.5 rounded-full">{tag}</span>
                         ))}
                       </div>
-                    </div>
-                  )}
-                </div>
+                    )}
 
-                {/* Connection status controller */}
-                <div className="flex items-center justify-between pt-4 border-t border-slate-800/80">
-                  <div className="flex items-center gap-1.5">
-                    {a.installed ? (
-                      a.enabled ? (
-                        <div className="flex items-center gap-1 text-xs font-semibold text-emerald-400 select-none">
-                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                          <span>Đang chạy</span>
+                    {/* Active plugins indicators */}
+                    {a.plugins && a.plugins.length > 0 && (
+                      <div className="space-y-1 pt-1">
+                        <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Plugins liên kết:</span>
+                        <div className="flex flex-wrap gap-1">
+                          {a.plugins.map(pid => (
+                            <span key={pid} className="text-[10px] font-mono bg-slate-950 text-slate-300 px-2 py-0.5 rounded border border-slate-800">{pid}</span>
+                          ))}
                         </div>
-                      ) : (
-                        <div className="flex items-center gap-1 text-xs font-semibold text-slate-400 select-none">
-                          <span className="w-2 h-2 rounded-full bg-slate-600" />
-                          <span>Đã dừng</span>
-                        </div>
-                      )
-                    ) : (
-                      <div className="flex items-center gap-1 text-xs font-semibold text-amber-500 select-none">
-                        <ShieldAlert className="w-3.5 h-3.5" />
-                        <span>Chưa có model</span>
                       </div>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    {/* Pull model button if not installed */}
-                    {!a.installed ? (
-                      state?.status === "downloading" || state?.status === "starting" ? (
-                        <div className="text-xs text-indigo-400 font-medium flex items-center gap-1.5 select-none">
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                          {state.message}
+                  {/* Connection status controller */}
+                  <div className="flex items-center justify-between pt-4 border-t border-slate-800/80">
+                    <div className="flex items-center gap-1.5">
+                      {a.installed ? (
+                        a.enabled ? (
+                          <div className="flex items-center gap-1 text-xs font-semibold text-emerald-400 select-none">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                            <span>Đang chạy</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1 text-xs font-semibold text-slate-400 select-none">
+                            <span className="w-2 h-2 rounded-full bg-slate-600" />
+                            <span>Đã dừng</span>
+                          </div>
+                        )
+                      ) : (
+                        <div className="flex items-center gap-1 text-xs font-semibold text-amber-500 select-none">
+                          <ShieldAlert className="w-3.5 h-3.5" />
+                          <span>Chưa có model</span>
                         </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {/* Pull model button if not installed */}
+                      {!a.installed ? (
+                        state?.status === "downloading" || state?.status === "starting" ? (
+                          <div className="text-xs text-indigo-400 font-medium flex items-center gap-1.5 select-none">
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                            {state.message}
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => handleInstallModel(a.id)}
+                            className="bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/50 text-indigo-300 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+                          >
+                            Cài mô hình
+                          </button>
+                        )
                       ) : (
                         <button
-                          onClick={() => handleInstallModel(a.id)}
-                          className="bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/50 text-indigo-300 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+                          onClick={() => handleConnectToggle(a)}
+                          className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${
+                            a.enabled
+                              ? "bg-red-950/20 border-red-900/60 text-red-400 hover:bg-red-900/20"
+                              : "bg-emerald-950/20 border-emerald-900/60 text-emerald-400 hover:bg-emerald-900/20"
+                          }`}
                         >
-                          Cài mô hình
+                          {a.enabled ? (
+                            <>
+                              <Square className="w-3 h-3 fill-red-400/20" />
+                              Ngắt kết nối
+                            </>
+                          ) : (
+                            <>
+                              <Play className="w-3 h-3 fill-emerald-400/20" />
+                              Kết nối A2A
+                            </>
+                          )}
                         </button>
-                      )
-                    ) : (
-                      <button
-                        onClick={() => handleConnectToggle(a)}
-                        className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${
-                          a.enabled
-                            ? "bg-red-950/20 border-red-900/60 text-red-400 hover:bg-red-900/20"
-                            : "bg-emerald-950/20 border-emerald-900/60 text-emerald-400 hover:bg-emerald-900/20"
-                        }`}
-                      >
-                        {a.enabled ? (
-                          <>
-                            <Square className="w-3 h-3 fill-red-400/20" />
-                            Ngắt kết nối
-                          </>
-                        ) : (
-                          <>
-                            <Play className="w-3 h-3 fill-emerald-400/20" />
-                            Kết nối A2A
-                          </>
-                        )}
-                      </button>
-                    )}
+                      )}
+                    </div>
                   </div>
-                </div>
 
-              </div>
-            );
-          })}
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
