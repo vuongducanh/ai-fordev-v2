@@ -16,8 +16,6 @@ from app.core.ollama import ollama_client
 
 logger = logging.getLogger(__name__)
 
-# Design intent detector regex
-_DESIGN_INTENT = re.compile(r"thiết kế|giao diện|ui|ux|bố cục|màu sắc|ảnh|logo", re.IGNORECASE)
 MAX_AGENTS = 3
 
 def orch_config() -> Dict[str, Any]:
@@ -62,12 +60,10 @@ async def _route_decision(user_text: str, history: List[Dict[str, Any]], cands: 
     if mentions:
         return mentions[:MAX_AGENTS]
 
-    # 2. Vision Guard check — remove vision-capable agents for non-design queries
-    if not _DESIGN_INTENT.search(user_text):
-        cands = [c for c in cands if not c.get("llm", {}).get("vision", False)]
+    # 2. If no candidates remain, return empty list
     if not cands:
         return []
-    
+
     # 3. LLM Router decision
     cfg = orch_config()
     snapshot = runtime_snapshot(cands)
