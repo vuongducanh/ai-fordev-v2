@@ -2,12 +2,14 @@ import React, { useState, useEffect } from "react";
 import { Sliders, RefreshCw, Trash2, Cpu, AlertTriangle } from "lucide-react";
 import { api } from "../lib/api";
 import type { OllamaModel } from "../lib/api";
+import { useToast } from "../lib/toast";
 
 interface SettingsViewProps {
   onRefreshHub: () => void;
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({ onRefreshHub }) => {
+  const { success, error } = useToast();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [models, setModels] = useState<OllamaModel[]>([]);
@@ -50,9 +52,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onRefreshHub }) => {
       setStatusMessage("Đã lưu cấu hình thành công!");
       setTimeout(() => setStatusMessage(""), 3000);
       onRefreshHub();
+      success("Đã lưu cấu hình điều phối (BFF)");
     } catch (err) {
       console.error("Failed to save orchestrator config", err);
       setStatusMessage("Lỗi lưu cấu hình.");
+      error(`Lưu cấu hình thất bại: ${err instanceof Error ? err.message : "lỗi không xác định"}`);
     } finally {
       setSaving(false);
     }
@@ -66,9 +70,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onRefreshHub }) => {
       await api.deleteOllamaModel(name);
       await loadSettingsAndModels();
       onRefreshHub();
+      success(`Đã xoá mô hình "${name}"`);
     } catch (err) {
       console.error("Failed to delete model", name, err);
-      alert(`Không thể xoá mô hình: ${err}`);
+      error(`Không thể xoá mô hình "${name}": ${err instanceof Error ? err.message : "lỗi không xác định"}`);
     }
   };
 

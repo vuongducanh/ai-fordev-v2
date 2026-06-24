@@ -2,8 +2,10 @@ import React, { useState, useEffect } from "react";
 import { Plus, Terminal, Link, Trash2, Check, AlertCircle, Loader2 } from "lucide-react";
 import { api, installPluginSSE } from "../lib/api";
 import type { Plugin } from "../lib/api";
+import { useToast } from "../lib/toast";
 
 export const PluginsView: React.FC = () => {
+  const { success, error } = useToast();
   const [plugins, setPlugins] = useState<Plugin[]>([]);
   const [loading, setLoading] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -92,19 +94,23 @@ export const PluginsView: React.FC = () => {
       });
       setShowAddForm(false);
       await loadPlugins();
+      success(`Đã lưu plugin "${newPlugin.name}"`);
     } catch (err) {
       console.error("Failed to upsert plugin", err);
-      alert("Lỗi lưu plugin.");
+      error(`Lưu plugin thất bại: ${err instanceof Error ? err.message : "lỗi không xác định"}`);
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Bạn có chắc chắn muốn xoá plugin này?")) return;
+    const name = plugins.find(p => p.id === id)?.name || id;
     try {
       await api.deletePlugin(id);
       await loadPlugins();
+      success(`Đã xoá plugin "${name}"`);
     } catch (err) {
       console.error("Failed to delete plugin", err);
+      error(`Xoá plugin thất bại: ${err instanceof Error ? err.message : "lỗi không xác định"}`);
     }
   };
 

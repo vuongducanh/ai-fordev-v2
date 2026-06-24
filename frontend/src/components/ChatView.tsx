@@ -150,6 +150,13 @@ export const ChatView: React.FC<ChatViewProps> = ({ agentsList }) => {
 
   // Handle input keydown for @mention popup or submitting
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Ignore keys while an IME composition is in progress (e.g. typing Vietnamese
+    // on macOS). Enter/Escape during composition only confirm/cancel the IME
+    // candidate and must not trigger send or mention handling.
+    if (e.nativeEvent.isComposing || e.keyCode === 229) {
+      return;
+    }
+
     if (mentionQuery !== null && mentionCands.length > 0) {
       if (e.key === "ArrowDown") {
         e.preventDefault();
@@ -372,18 +379,22 @@ export const ChatView: React.FC<ChatViewProps> = ({ agentsList }) => {
         controller.signal
       );
 
-      // Successfully finished: check if stats yielded, fallback to client estimator if not
+      // Successfully finished: clear the loading status and ensure stats exist
       const finalConvs = JSON.parse(localStorage.getItem("a2a.conversations") || "[]") as Conversation[];
       const finConv = finalConvs.find(c => c.id === currentConvId);
       const finMsg = finConv?.messages.find(m => m.id === assistantMsgId);
-      if (finMsg && !finMsg.stats) {
-        finMsg.stats = estimateStats(
-          textChunksRef.current,
-          streamFirstChunkRef.current,
-          streamLastChunkRef.current,
-          streamStartRef.current,
-          Date.now()
-        );
+      if (finMsg) {
+        // Clear the "Đang…" status so this message no longer shows a spinner
+        finMsg.status = undefined;
+        if (!finMsg.stats) {
+          finMsg.stats = estimateStats(
+            textChunksRef.current,
+            streamFirstChunkRef.current,
+            streamLastChunkRef.current,
+            streamStartRef.current,
+            Date.now()
+          );
+        }
         saveConversations(finalConvs);
       }
     } catch (err: any) {
@@ -507,9 +518,10 @@ export const ChatView: React.FC<ChatViewProps> = ({ agentsList }) => {
         {/* Messages list scroll area */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {activeConv && activeConv.messages.length > 0 ? (
-            activeConv.messages.map((m) => (
+            activeConv.messages.map((m, mIdx) => (
               <div
                 key={m.id}
+                data-last={mIdx === activeConv.messages.length - 1}
                 className={`flex gap-4 ${m.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 {/* Avatar */}
@@ -525,7 +537,7 @@ export const ChatView: React.FC<ChatViewProps> = ({ agentsList }) => {
                     <div className="flex items-center gap-1.5 text-[10px] bg-slate-950/40 border border-slate-800/80 px-2 py-1 rounded-md text-slate-400 font-mono w-fit uppercase select-none">
                       <span className="text-indigo-400 font-semibold">{m.routing}</span>
                       <span>·</span>
-                      <span>Agents: {m.agentsUsed?.join(", ")}</span>
+                      <span>Agents: {m.agentsUsed?.map(id => agentsList.find(a => a.id === id)?.card.name || id).join(", ")}</span>
                     </div>
                   )}
 
@@ -568,8 +580,8 @@ export const ChatView: React.FC<ChatViewProps> = ({ agentsList }) => {
                       <div className="space-y-4">
                         <Markdown content={m.content} />
                         
-                        {/* Status text delta */}
-                        {loading && m.status && m.status !== "error" && (
+                        {/* Status text delta — only for the currently streaming (last) message */}
+                        {loading && mIdx === activeConv.messages.length - 1 && m.status && m.status !== "error" && (
                           <div className="flex items-center gap-1.5 text-xs text-indigo-400 animate-pulse select-none">
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
                             <span>{m.status} ({timerSeconds}s)</span>

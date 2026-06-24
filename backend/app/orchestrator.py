@@ -5,6 +5,7 @@ import asyncio
 import logging
 import datetime
 from typing import List, Dict, Any, Tuple, Optional, AsyncGenerator, Callable
+import uuid
 from fastapi import FastAPI, Request
 from fastapi.responses import StreamingResponse
 import httpx
@@ -137,6 +138,7 @@ async def call_agent(http_client: httpx.AsyncClient, port: int, agent: Dict[str,
         "method": "SendMessage",
         "params": {
             "message": {
+                "message_id": str(uuid.uuid4()),
                 "role": "ROLE_USER",
                 "parts": [{"text": prompt}]
             }
