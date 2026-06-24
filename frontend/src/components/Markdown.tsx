@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -7,6 +7,30 @@ import rehypeKatex from "rehype-katex";
 import { Check, Copy } from "lucide-react";
 import "katex/dist/katex.min.css";
 import "highlight.js/styles/github-dark.css";
+
+/**
+ * Recursively extract plain text from React children.
+ * This handles the case where rehype-highlight transforms code content
+ * into nested React elements (spans with syntax highlighting classes).
+ */
+function extractTextFromChildren(children: ReactNode): string {
+  if (typeof children === "string") return children;
+  if (typeof children === "number") return String(children);
+  if (children == null || typeof children === "boolean") return "";
+
+  if (Array.isArray(children)) {
+    return children.map(extractTextFromChildren).join("");
+  }
+
+  // React element — extract text from its children prop
+  if (typeof children === "object" && "props" in children) {
+    return extractTextFromChildren(
+      (children as React.ReactElement<{ children?: ReactNode }>).props.children
+    );
+  }
+
+  return "";
+}
 
 interface MarkdownProps {
   content: string;
@@ -26,11 +50,14 @@ export const Markdown: React.FC<MarkdownProps> = ({ content }) => {
             const isBlock = className && className.includes("language-");
             const match = /language-(\w+)/.exec(className || "");
             const lang = match ? match[1] : "";
-            const codeString = String(children).replace(/\n$/, "");
 
             if (isBlock) {
+              // Extract plain text for the copy button
+              const plainText = extractTextFromChildren(children).replace(/\n$/, "");
               return (
-                <CodeBlock lang={lang || "code"} code={codeString} />
+                <CodeBlock lang={lang || "code"} copyText={plainText}>
+                  {children}
+                </CodeBlock>
               );
             }
             return (
@@ -49,15 +76,16 @@ export const Markdown: React.FC<MarkdownProps> = ({ content }) => {
 
 interface CodeBlockProps {
   lang: string;
-  code: string;
+  copyText: string;
+  children: ReactNode;
 }
 
-const CodeBlock: React.FC<CodeBlockProps> = ({ lang, code }) => {
+const CodeBlock: React.FC<CodeBlockProps> = ({ lang, copyText, children }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(code);
+      await navigator.clipboard.writeText(copyText);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
@@ -87,7 +115,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ lang, code }) => {
         </button>
       </div>
       <div className="p-4 overflow-x-auto font-mono text-sm leading-relaxed text-slate-100">
-        <code>{code}</code>
+        <code>{children}</code>
       </div>
     </div>
   );

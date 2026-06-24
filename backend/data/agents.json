@@ -4,7 +4,7 @@
     "enabled": true,
     "installed": true,
     "card": {
-      "name": "Chuyên Gia Soạn Thảo Email 1",
+      "name": "Chuyên Gia Soạn Thảo Email",
       "description": "Agent chuyên hỗ trợ soạn thảo, chỉnh sửa và tối ưu hóa email trong môi trường công việc và kinh doanh. Agent có khả năng viết email bằng tiếng Việt hoặc tiếng Anh với nhiều phong cách khác nhau như chuyên nghiệp, lịch sự, thuyết phục, thân thiện hoặc trang trọng. Agent giúp người dùng tạo email mới từ yêu cầu ngắn gọn, cải thiện nội dung email hiện có, kiểm tra ngữ pháp, tối ưu cấu trúc và đề xuất tiêu đề phù hợp để tăng hiệu quả giao tiếp.",
       "skills": [
         {
@@ -36,7 +36,7 @@
     "enabled": true,
     "installed": true,
     "card": {
-      "name": "Chuyên Gia Phân Tích Nghiệp Vụ 1",
+      "name": "Chuyên Gia Phân Tích Nghiệp Vụ",
       "description": "Chuyển đổi yêu cầu kinh doanh thành yêu cầu chức năng và kỹ thuật.",
       "skills": [
         {
