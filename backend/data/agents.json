@@ -1,43 +1,5 @@
 [
   {
-    "id": "researcher",
-    "enabled": true,
-    "installed": true,
-    "card": {
-      "name": "Researcher",
-      "description": "Chuyên gia nghiên cứu, phân tích thông tin sâu sắc và tìm kiếm web.",
-      "skills": [
-        {
-          "id": "analyze",
-          "name": "Nghiên cứu & Phân tích",
-          "description": "Nghiên cứu các chủ đề phức tạp, tóm tắt bài báo, giải thích các khái niệm khoa học.",
-          "tags": [
-            "research",
-            "websearch",
-            "explain"
-          ],
-          "examples": []
-        }
-      ]
-    },
-    "llm": {
-      "provider": "ollama",
-      "model": "qwen2.5:7b",
-      "system_prompt": "Bạn là chuyên gia nghiên cứu. Hãy trả lời chi tiết, chính xác dựa trên dữ liệu thực tế và thông tin tìm kiếm được. Tránh suy diễn vô căn cứ.",
-      "temperature": 0.4,
-      "top_p": 0.9,
-      "top_k": 40,
-      "num_ctx": 8192,
-      "thinking": false,
-      "vision": false
-    },
-    "plugins": [
-      "time",
-      "websearch",
-      "fetch_content"
-    ]
-  },
-  {
     "id": "EMAIL_WRITING_AGENT",
     "enabled": true,
     "installed": true,
@@ -64,6 +26,70 @@
       "top_p": 0.9,
       "top_k": 40,
       "num_ctx": 8192,
+      "thinking": false,
+      "vision": false
+    },
+    "plugins": []
+  },
+  {
+    "id": "BUSINESS_ANALYST_AGENT",
+    "enabled": true,
+    "installed": true,
+    "card": {
+      "name": "Chuyên Gia Phân Tích Nghiệp Vụ",
+      "description": "Chuyển đổi yêu cầu kinh doanh thành yêu cầu chức năng và kỹ thuật.",
+      "skills": [
+        {
+          "id": "general",
+          "name": "Kỹ năng tổng hợp",
+          "description": "Chuyển đổi yêu cầu kinh doanh thành yêu cầu chức năng và kỹ thuật.",
+          "tags": [
+            "general"
+          ],
+          "examples": []
+        }
+      ]
+    },
+    "llm": {
+      "provider": "ollama",
+      "model": "deepseek-r1:8b",
+      "system_prompt": "Bạn là Business Analyst.\n\nNhiệm vụ:\n- Phân tích yêu cầu.\n- Xác định stakeholder.\n- Viết User Story.\n- Viết Acceptance Criteria.\n\nĐầu ra:\n\nBusiness Goal\nRequirements\nUser Stories\nAcceptance Criteria\nRisks",
+      "temperature": 0,
+      "top_p": 0.9,
+      "top_k": 40,
+      "num_ctx": 8192,
+      "thinking": false,
+      "vision": false
+    },
+    "plugins": []
+  },
+  {
+    "id": "CONTENT_CREATOR_AGENT",
+    "enabled": false,
+    "installed": true,
+    "card": {
+      "name": "Chuyên Gia Sáng Tạo Nội Dung",
+      "description": "Tạo nội dung cho blog, mạng xã hội, website và chiến dịch marketing.",
+      "skills": [
+        {
+          "id": "general",
+          "name": "Kỹ năng tổng hợp",
+          "description": "Tạo nội dung cho blog, mạng xã hội, website và chiến dịch marketing.",
+          "tags": [
+            "general"
+          ],
+          "examples": []
+        }
+      ]
+    },
+    "llm": {
+      "provider": "ollama",
+      "model": "deepseek-r1:8b",
+      "system_prompt": "Bạn là Content Creator.\n\nNhiệm vụ:\n- Viết nội dung hấp dẫn.\n- Tối ưu khả năng đọc.\n- Điều chỉnh theo nền tảng.\n\nLuôn cung cấp:\n- Hook\n- Main Content\n- CTA\n\nPhong cách:\n- Chuyên nghiệp\n- Sáng tạo\n- Dễ đọc",
+      "temperature": 0.6,
+      "top_p": 0.9,
+      "top_k": 40,
+      "num_ctx": 2048,
       "thinking": false,
       "vision": false
     },

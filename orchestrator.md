@@ -1,0 +1,11 @@
+ - Nhận JSON body (message, history); port = request.url.port hoặc 8090.
+ - Yield status "Đang định tuyến…".
+ - Load agents từ store; cands = agents enabled & installed.
+ - Gọi _route_decision(prompt, history, cands) → returns decisions (mention check → vision filter → LLM router).
+ - Nếu decisions rỗng: - gửi meta {agents_used:[], routing: "direct"}, status, rồi stream trả lời trực tiếp bằng llm.stream_text (event: delta).
+ - Nếu có decisions: - xác định routing (mention/auto/auto-multi), gửi meta + status.
+ - khởi tạo tool_queue và đăng ký toolevents reporter để thu sự kiện tool.
+ - tạo task chạy _run_agents(cands, decisions, port, app) (gọi agent qua ASGITransport hoặc fallback LLM).
+ - while: emit tool events từ tool_queue cho UI; chờ run_task hoàn tất.
+ - nhận agent_replies, yield status "Đang tổng hợp…", rồi stream tổng hợp qua _synth_response (delta).
+ - Cuối cùng: emit stats, done; lỗi được catch và emit error.
