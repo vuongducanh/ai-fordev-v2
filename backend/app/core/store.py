@@ -12,7 +12,6 @@ class Store:
     def __init__(self):
         DATA_DIR.mkdir(parents=True, exist_ok=True)
         self.agents_path = DATA_DIR / "agents.json"
-        self.plugins_path = DATA_DIR / "plugins.json"
         self.settings_path = DATA_DIR / "settings.json"
         self._init_files()
 
@@ -26,16 +25,6 @@ class Store:
             else:
                 agents = []
             self.save_agents(agents)
-
-        # Seed plugins
-        if not self.plugins_path.exists():
-            seed_plugins = SEED_DIR / "seed_plugins.json"
-            if seed_plugins.exists():
-                with open(seed_plugins, "r", encoding="utf-8") as f:
-                    plugins = json.load(f)
-            else:
-                plugins = []
-            self.save_plugins(plugins)
 
         # Seed settings
         if not self.settings_path.exists():
@@ -56,14 +45,6 @@ class Store:
     def save_agents(self, agents: List[Dict[str, Any]]):
         with open(self.agents_path, "w", encoding="utf-8") as f:
             json.dump(agents, f, indent=2, ensure_ascii=False)
-
-    def load_plugins(self) -> List[Dict[str, Any]]:
-        with open(self.plugins_path, "r", encoding="utf-8") as f:
-            return json.load(f)
-
-    def save_plugins(self, plugins: List[Dict[str, Any]]):
-        with open(self.plugins_path, "w", encoding="utf-8") as f:
-            json.dump(plugins, f, indent=2, ensure_ascii=False)
 
     def load_settings(self) -> Dict[str, Any]:
         with open(self.settings_path, "r", encoding="utf-8") as f:

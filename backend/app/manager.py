@@ -6,7 +6,7 @@ from fastapi.responses import StreamingResponse
 
 from app.core.store import store
 from app.core.ollama import ollama_client
-from app.core.mcp import open_tools
+
 from app import host
 
 logger = logging.getLogger(__name__)
@@ -115,76 +115,6 @@ async def install_agent_model(agent_id: str, request: Request):
             yield f"event: progress\ndata: {json.dumps({'status': 'failed', 'message': 'Failed to pull model'})}\n\n"
             
     return StreamingResponse(install_generator(), media_type="text/event-stream")
-
-@manager_router.get("/api/plugins")
-async def get_plugins():
-    return store.load_plugins()
-
-@manager_router.post("/api/plugins")
-async def upsert_plugin(plugin: Dict[str, Any]):
-    plugins = store.load_plugins()
-    plugin_id = plugin.get("id")
-    if not plugin_id:
-        raise HTTPException(status_code=400, detail="Missing plugin id")
-        
-    idx = next((i for i, p in enumerate(plugins) if p["id"] == plugin_id), -1)
-    if idx != -1:
-        plugins[idx] = plugin
-    else:
-        plugins.append(plugin)
-    store.save_plugins(plugins)
-    return {"status": "success", "plugin": plugin}
-
-@manager_router.delete("/api/plugins/{plugin_id}")
-async def delete_plugin(plugin_id: str):
-    plugins = store.load_plugins()
-    plugins = [p for p in plugins if p["id"] != plugin_id]
-    store.save_plugins(plugins)
-    return {"status": "success"}
-
-@manager_router.post("/api/plugins/{plugin_id}/install")
-async def install_plugin(plugin_id: str):
-    """Verifies MCP plugin tool connection and registers it as installed."""
-    plugins = store.load_plugins()
-    plugin = next((p for p in plugins if p["id"] == plugin_id), None)
-    if not plugin:
-        raise HTTPException(status_code=404, detail="Plugin not found")
-        
-    async def plugin_install_generator():
-        yield f"event: progress\ndata: {json.dumps({'status': 'installing', 'message': f'Installing plugin {plugin_id}'})}\n\n"
-        
-        if plugin["type"] == "builtin":
-            plugin["installed"] = True
-            plugin["enabled"] = True
-            store.save_plugins(plugins)
-            yield f"event: progress\ndata: {json.dumps({'status': 'completed', 'message': 'Built-in plugin ready immediately'})}\n\n"
-        else:
-            # Try to connect and fetch tools
-            yield f"event: progress\ndata: {json.dumps({'status': 'connecting', 'message': 'Connecting to MCP Server...'})}\n\n"
-            try:
-                # We temporarily enable it to test the mcp connection
-                plugin["enabled"] = True
-                store.save_plugins(plugins)
-                
-                async with open_tools([plugin_id]) as (openai_tools, _):
-                    if openai_tools:
-                        # Success: save state
-                        plugin["installed"] = True
-                        plugin["tools"] = [t["name"] for t in openai_tools]
-                        store.save_plugins(plugins)
-                        yield f"event: progress\ndata: {json.dumps({'status': 'completed', 'message': f'Success! Found tools: {', '.join(plugin['tools'])}'})}\n\n"
-                    else:
-                        plugin["installed"] = False
-                        plugin["enabled"] = False
-                        store.save_plugins(plugins)
-                        yield f"event: progress\ndata: {json.dumps({'status': 'failed', 'message': 'MCP server did not expose any tools'})}\n\n"
-            except Exception as e:
-                plugin["installed"] = False
-                plugin["enabled"] = False
-                store.save_plugins(plugins)
-                yield f"event: progress\ndata: {json.dumps({'status': 'failed', 'message': f'Failed to connect: {e}'})}\n\n"
-                
-    return StreamingResponse(plugin_install_generator(), media_type="text/event-stream")
 
 @manager_router.get("/api/models")
 async def get_ollama_models():

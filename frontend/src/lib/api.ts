@@ -81,7 +81,6 @@ export const api = {
   disconnectAgent: (id: string): Promise<any> => request(`/api/agents/${id}/disconnect`, { method: "POST" }),
 
   // Plugins REST
-  getPlugins: (): Promise<Plugin[]> => request("/api/plugins"),
   upsertPlugin: (plugin: Plugin): Promise<any> => request("/api/plugins", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

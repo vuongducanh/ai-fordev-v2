@@ -24,29 +24,12 @@ export const PluginsView: React.FC = () => {
   // Track install stream progress
   const [installStates, setInstallStates] = useState<Record<string, { status: string; message: string }>>({});
 
-  useEffect(() => {
-    loadPlugins();
-  }, []);
-
-  const loadPlugins = async () => {
-    setLoading(true);
-    try {
-      const allPlugins = await api.getPlugins();
-      setPlugins(allPlugins);
-    } catch (err) {
-      console.error("Failed to load plugins list", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleVerifyPlugin = (id: string) => {
     setInstallStates(prev => ({ ...prev, [id]: { status: "installing", message: "Đang kết nối..." } }));
     
     installPluginSSE(id, (_event, data) => {
       if (data.status === "completed") {
         setInstallStates(prev => ({ ...prev, [id]: { status: "completed", message: data.message } }));
-        loadPlugins();
       } else if (data.status === "failed") {
         setInstallStates(prev => ({ ...prev, [id]: { status: "failed", message: data.message } }));
       } else {
@@ -93,7 +76,6 @@ export const PluginsView: React.FC = () => {
         url: ""
       });
       setShowAddForm(false);
-      await loadPlugins();
       success(`Đã lưu plugin "${newPlugin.name}"`);
     } catch (err) {
       console.error("Failed to upsert plugin", err);
@@ -106,7 +88,6 @@ export const PluginsView: React.FC = () => {
     const name = plugins.find(p => p.id === id)?.name || id;
     try {
       await api.deletePlugin(id);
-      await loadPlugins();
       success(`Đã xoá plugin "${name}"`);
     } catch (err) {
       console.error("Failed to delete plugin", err);

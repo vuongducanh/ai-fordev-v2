@@ -1,17 +1,16 @@
 import { useState, useEffect } from "react";
 import { MessageSquare, Cpu, Terminal, Settings as SettingsIcon, Sparkles, Wifi, WifiOff } from "lucide-react";
 import { api } from "./lib/api";
-import type { Agent, OllamaModel, Plugin } from "./lib/api";
+import type { Agent, OllamaModel } from "./lib/api";
 import { ChatView } from "./components/ChatView";
 import { AgentsView } from "./components/AgentsView";
-import { PluginsView } from "./components/PluginsView";
+
 import { SettingsView } from "./components/SettingsView";
 import { RegistryModal } from "./components/RegistryModal";
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<"chat" | "agents" | "plugins" | "settings">("chat");
+  const [activeTab, setActiveTab] = useState<"chat" | "agents" | "settings">("chat");
   const [ollamaModels, setOllamaModels] = useState<OllamaModel[]>([]);
-  const [pluginsList, setPluginsList] = useState<Plugin[]>([]);
   const [agentsList, setAgentsList] = useState<Agent[]>([]);
   const [isRegistryOpen, setIsRegistryOpen] = useState(false);
   const [backendStatus, setBackendStatus] = useState<"online" | "offline">("online");
@@ -19,13 +18,11 @@ export default function App() {
   // Load and refresh state databases
   const refreshHubData = async () => {
     try {
-      const [models, plugins, agents] = await Promise.all([
+      const [models, agents] = await Promise.all([
         api.getOllamaModels(),
-        api.getPlugins(),
         api.getAgents()
       ]);
       setOllamaModels(models);
-      setPluginsList(plugins);
       setAgentsList(agents);
       setBackendStatus("online");
     } catch (err) {
@@ -110,11 +107,9 @@ export default function App() {
         {activeTab === "agents" && (
           <AgentsView
             ollamaModels={ollamaModels}
-            pluginsList={pluginsList}
             onRefreshHub={refreshHubData}
           />
         )}
-        {activeTab === "plugins" && <PluginsView />}
         {activeTab === "settings" && <SettingsView onRefreshHub={refreshHubData} />}
 
       </div>

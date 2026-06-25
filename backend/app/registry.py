@@ -41,55 +41,9 @@ SUGGESTED_MODELS = [
     }
 ]
 
-SUGGESTED_PLUGINS = [
-    {
-        "id": "calculator",
-        "name": "Calculator",
-        "description": "Phép toán cơ bản cộng và nhân hai số (Built-in).",
-        "type": "builtin",
-        "tools": ["add", "multiply"]
-    },
-    {
-        "id": "websearch",
-        "name": "Web Search (DuckDuckGo)",
-        "description": "Tìm kiếm thông tin trực tuyến (Built-in).",
-        "type": "builtin",
-        "tools": ["search"]
-    },
-    {
-        "id": "fetch_content",
-        "name": "URL Content Fetcher",
-        "description": "Đọc nội dung văn bản từ các trang web (Built-in).",
-        "type": "builtin",
-        "tools": ["fetch_content"]
-    },
-    {
-        "id": "time",
-        "name": "System Clock",
-        "description": "Lấy thời gian hệ thống thời gian thực (Built-in).",
-        "type": "builtin",
-        "tools": ["get_current_time"]
-    },
-    {
-        "id": "duckduckgo-mcp",
-        "name": "DuckDuckGo MCP Server",
-        "description": "MCP Server tìm kiếm web chính thức thông qua uvx.",
-        "type": "mcp_stdio",
-        "install": {
-            "command": "uvx",
-            "args": ["duckduckgo-mcp-server"]
-        },
-        "tools": ["duckduckgo_search", "duckduckgo_web_search"]
-    }
-]
-
 @registry_router.get("/api/registry/models")
 async def get_suggested_models():
     return SUGGESTED_MODELS
-
-@registry_router.get("/api/registry/plugins")
-async def get_suggested_plugins():
-    return SUGGESTED_PLUGINS
 
 @registry_router.post("/api/models/pull")
 async def pull_model(body: Dict[str, Any]):
