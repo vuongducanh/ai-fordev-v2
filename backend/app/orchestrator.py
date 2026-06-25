@@ -24,7 +24,7 @@ def orch_config() -> Dict[str, Any]:
     settings = store.load_settings()
     cfg = settings.get("orchestrator", {}).copy()
     if "model" not in cfg:
-        cfg["model"] = "qwen2.5:7b"
+        cfg["model"] = "qwen3:1.7b"
     if "temperature" not in cfg:
         cfg["temperature"] = 0.3
     if "top_p" not in cfg:
@@ -186,7 +186,7 @@ async def call_agent(http_client: httpx.AsyncClient, port: int, agent: Dict[str,
         logger.warning(f"Agent {agent_id} call failed, falling back to local LLM: {e}")
         try:
             cfg = {
-                "model": agent.get("llm", {}).get("model", "qwen2.5:7b"),
+                "model": agent.get("llm", {}).get("model", "qwen3:1.7b"),
                 "temperature": agent.get("llm", {}).get("temperature", 0.3),
                 "top_p": agent.get("llm", {}).get("top_p", 0.9),
                 "top_k": agent.get("llm", {}).get("top_k", 40)

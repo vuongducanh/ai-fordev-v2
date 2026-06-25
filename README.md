@@ -33,10 +33,10 @@ Lưu ý: virtualenv không được commit vào git (xem .gitignore), nên mỗi
 
 Lưu ý về Ollama
 - Backend dùng LLM cục bộ qua Ollama (mặc định http://localhost:11434) với các
-  model như qwen2.5:7b, deepseek-r1:8b. Server vẫn khởi động được khi thiếu Ollama,
+  model như qwen3:1.7b, deepseek-r1:8b. Server vẫn khởi động được khi thiếu Ollama,
   nhưng phần agent/chat sẽ lỗi 404. Để dùng đầy đủ:
   ollama serve
-  ollama pull qwen2.5:7b
+  ollama pull qwen3:1.7b
   ollama pull deepseek-r1:8b
 
 Chạy frontend

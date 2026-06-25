@@ -30,7 +30,7 @@ class Store:
         if not self.settings_path.exists():
             default_settings = {
                 "orchestrator": {
-                    "model": "qwen2.5:7b",
+                    "model": "gemma3:1b",
                     "temperature": 0.3,
                     "top_p": 0.9,
                     "top_k": 40

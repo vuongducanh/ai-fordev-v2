@@ -14,7 +14,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onRefreshHub }) => {
   const [saving, setSaving] = useState(false);
   const [models, setModels] = useState<OllamaModel[]>([]);
   const [orchestratorSettings, setOrchestratorSettings] = useState({
-    model: "qwen2.5:7b",
+    model: "qwen3:1.7b",
     temperature: 0.3,
     top_p: 0.9,
     top_k: 40
@@ -121,7 +121,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onRefreshHub }) => {
                     <option key={m.name} value={m.name}>{m.name}</option>
                   ))
                 ) : (
-                  <option value="qwen2.5:7b">qwen2.5:7b (Chưa cài)</option>
+                  <option value="qwen3:1.7b">qwen3:1.7b (Chưa cài)</option>
                 )}
               </select>
             </div>

@@ -18,7 +18,7 @@
     },
     "llm": {
       "provider": "ollama",
-      "model": "qwen2.5:7b",
+      "model": "gemma3:1b",
       "system_prompt": "Bạn là chuyên gia nghiên cứu. Hãy trả lời chi tiết, chính xác dựa trên dữ liệu thực tế và thông tin tìm kiếm được. Tránh suy diễn vô căn cứ.",
       "temperature": 0.4,
       "top_p": 0.9,
