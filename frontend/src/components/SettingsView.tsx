@@ -159,6 +159,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onRefreshHub }) => {
                 onChange={(e) => setOrchestratorSettings(prev => ({ ...prev, top_p: parseFloat(e.target.value) }))}
                 className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
               />
+              <p className="text-[10px] text-slate-500">Thấp hơn = AI chỉ chọn trong những phương án phổ biến và an toàn nhất. Cao hơn = AI cân nhắc nhiều phương án hơn, câu trả lời đa dạng hơn.</p>
             </div>
 
             {/* Top K input */}
@@ -176,6 +177,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onRefreshHub }) => {
                 onChange={(e) => setOrchestratorSettings(prev => ({ ...prev, top_k: parseInt(e.target.value) }))}
                 className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
               />
+              <p className="text-[10px] text-slate-500">Thấp hơn = AI chỉ xem xét một số ít lựa chọn tốt nhất. Cao hơn = AI xem xét nhiều lựa chọn hơn trước khi trả lời.</p>
             </div>
 
             <div className="flex items-center justify-between pt-4 border-t border-slate-800">
