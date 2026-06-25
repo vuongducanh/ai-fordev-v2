@@ -52,13 +52,18 @@ def runtime_snapshot(cands: List[Dict[str, Any]]) -> Dict[str, Any]:
 async def _route_decision(user_text: str, history: List[Dict[str, Any]], cands: List[Dict[str, Any]]) -> List[Tuple[str, str]]:
     """Analyzes prompt text and decides which specialized agents should handle subtasks."""
     # 1. Mention check — honor explicit @agent mentions (do not filter by vision)
-    mentions = []
-    for c in cands:
-        mention_token = f"@{c['id']}"
-        if mention_token in user_text:
-            cleaned_prompt = user_text.replace(mention_token, "").strip()
-            mentions.append((c["id"], cleaned_prompt if cleaned_prompt else user_text))
-    if mentions:
+    mention_tokens = {f"@{c['id']}": c["id"] for c in cands}
+    found_mentions = [(aid, token) for token, aid in mention_tokens.items() if token in user_text]
+    
+    if found_mentions:
+        # Xóa hết tất cả @token khỏi prompt, không xóa từng cái riêng lẻ
+        cleaned_prompt = user_text
+        for _, token in found_mentions:
+            cleaned_prompt = cleaned_prompt.replace(token, "")
+        cleaned_prompt = cleaned_prompt.strip()
+        
+        final_prompt = cleaned_prompt if cleaned_prompt else user_text
+        mentions = [(aid, final_prompt) for aid, _ in found_mentions]
         return mentions[:MAX_AGENTS]
 
     # 2. If no candidates remain, return empty list
@@ -80,7 +85,16 @@ async def _route_decision(user_text: str, history: List[Dict[str, Any]], cands: 
                     "type": "object",
                     "properties": {
                         "agent": {"type": "string", "enum": agent_ids},
-                        "task": {"type": "string", "description": "Nhiệm vụ chi tiết cho agent này"}
+                        # Hướng dẫn rõ: task phải là prompt đầy đủ, có thể điều chỉnh focus
+                        "task": {
+                            "type": "string",
+                            "description": (
+                                "Prompt đầy đủ gửi cho agent này. "
+                                "PHẢI bao gồm toàn bộ nội dung câu hỏi gốc của user. "
+                                "Có thể thêm hướng dẫn focus vào phần agent đó phụ trách, "
+                                "nhưng KHÔNG được rút gọn hay bỏ bớt thông tin gốc."
+                            )
+                        }
                     },
                     "required": ["agent", "task"]
                 }
@@ -88,7 +102,7 @@ async def _route_decision(user_text: str, history: List[Dict[str, Any]], cands: 
         },
         "required": ["agents"]
     }
-    
+
     sys_instruction = (
         "Bạn là điều phối viên hệ thống đa agent. Hãy phân tích yêu cầu của người dùng, "
         "chia nhỏ việc và định tuyến tới các agent thích hợp nhất dựa vào danh sách dưới đây.\n"
@@ -99,23 +113,32 @@ async def _route_decision(user_text: str, history: List[Dict[str, Any]], cands: 
         "- Dịch thuật -> translator.\n"
         "- Không chọn agent có vision/thiết kế nếu câu hỏi chỉ là văn bản/code thông thường.\n"
         "- Chỉ trả về mảng rỗng nếu chỉ là chào hỏi, xã giao hoặc hỏi về BFF.\n"
+        "- Trường 'task' PHẢI chứa đầy đủ nội dung câu hỏi gốc, không được tóm tắt hay rút gọn.\n"
         f"Danh sách agent:\n{json.dumps(snapshot, indent=2, ensure_ascii=False)}"
     )
-    
+
+    # Thêm history vào messages để router có đủ context
+    recent_history = history[-6:] if len(history) > 6 else history  # giới hạn để tránh context quá dài
     messages = [
         llm.system_message(sys_instruction),
+        *recent_history,
         {"role": "user", "content": user_text}
     ]
-    
+
     try:
         routing_res = await llm.chat_json(cfg, messages, schema)
         decision = []
         for item in routing_res.get("agents", []):
             aid = item.get("agent")
-            task = item.get("task", user_text)
+            task = item.get("task", "").strip()
+            
+            # Safety net: nếu LLM vẫn trả task rỗng/quá ngắn, fallback về user_text gốc
+            if not task or len(task) < 10:
+                task = user_text
+                
             if aid in agent_ids:
                 decision.append((aid, task))
-                
+
         # Deduplicate
         seen = set()
         deduped = []
@@ -153,6 +176,8 @@ async def call_agent(http_client: httpx.AsyncClient, port: int, agent: Dict[str,
             # Agent returned JSON-RPC error; raise to be handled below
             raise ValueError(f"Agent JSON-RPC error: {data['error']}")
         result = data.get("result", {})
+        logger.info(f" prompt ========= {prompt}")
+        logger.info(f" result ========= {result}")
         parts = result.get("parts", [])
         return "".join(p.get("text", "") for p in parts if p.get("text"))
     except Exception as e:
@@ -208,39 +233,55 @@ def _append_warnings(text: str, warnings: List[str]) -> str:
         return text
     return text + "\n\n" + "\n".join(warnings)
 
-async def _synth_response(cfg: Dict[str, Any], user_text: str, agent_replies: Dict[str, str], on_meta: Optional[Callable] = None) -> AsyncGenerator[str, None]:
+async def _synth_response(
+    cfg: Dict[str, Any],
+    user_text: str,
+    agent_replies: Dict[str, str],
+    on_meta: Optional[Callable] = None
+) -> AsyncGenerator[str, None]:
     """Generates a cohesive response synthesizing facts from other agents."""
+    
     all_warnings = []
     clean_replies = {}
     for aid, reply in agent_replies.items():
         clean_rep, warnings = _split_warnings(reply)
         clean_replies[aid] = clean_rep
         all_warnings.extend(warnings)
-        
+
+    # Build agent block rõ ràng, đánh số để LLM dễ track
+    agent_blocks = ""
+
+    sys_instruction = (
+        "Bạn là trợ lý tổng hợp thông tin. Nhiệm vụ của bạn là ghép kết quả từ nhiều agent "
+        "thành một câu trả lời hoàn chỉnh cho người dùng.\n\n"
+        "QUY TẮC BẮT BUỘC:\n"
+        "1. Phải sử dụng thông tin từ TẤT CẢ các agent được liệt kê — không được bỏ sót agent nào.\n"
+        "2. GIỮ NGUYÊN mọi số liệu, tên riêng, code, URL, dữ liệu cụ thể từ agent reply — "
+        "TUYỆT ĐỐI không paraphrase làm mất thông tin.\n"
+        "3. KHÔNG tự bịa thêm bất kỳ thông tin nào ngoài những gì agent đã cung cấp.\n"
+        "4. Nếu các agent cung cấp thông tin bổ sung nhau → tích hợp liền mạch.\n"
+        "5. Nếu các agent mâu thuẫn nhau → nêu rõ mâu thuẫn, trích dẫn cụ thể từng agent.\n"
+        "6. Ngôn ngữ đầu ra: tiếng Việt (giữ nguyên thuật ngữ kỹ thuật, code, tên riêng bằng tiếng Anh).\n"
+        "7. Không thêm lời mở đầu kiểu 'Dưới đây là tổng hợp...', đi thẳng vào nội dung."
+    )
+
     prompt = (
-        f"Người dùng hỏi: {user_text}\n\n"
-        "Dưới đây là câu trả lời từ các agent chuyên môn:\n"
+        f"Câu hỏi của người dùng: {user_text}\n\n"
+        f"Kết quả từ {len(clean_replies)} agent chuyên môn:\n\n"
+        f"{agent_blocks}"
+        "Hãy tổng hợp thành câu trả lời hoàn chỉnh, tích hợp đầy đủ thông tin từ tất cả agent trên."
     )
-    for aid, reply in clean_replies.items():
-        prompt += f"--- Agent '{aid}' ---\n{reply}\n\n"
-    prompt += (
-        "Hãy tổng hợp các câu trả lời trên thành một câu trả lời duy nhất, mạch lạc bằng tiếng Việt. "
-        "Yêu cầu: GIỮ NGUYÊN mọi sự kiện, dữ liệu thực tế và thông tin chi tiết. TUYỆT ĐỐI không tự bịa thêm sự kiện ngoài luồng. "
-        "Nếu các agent có câu trả lời mâu thuẫn, hãy nêu rõ mâu thuẫn đó một cách khách quan."
-    )
-    
+
     messages = [
-        llm.system_message("Bạn là trợ lý tổng hợp thông tin chính xác."),
+        llm.system_message(sys_instruction),
         {"role": "user", "content": prompt}
     ]
-    
+
     accumulated_text = []
     async for chunk in llm.stream_text(cfg, messages, on_meta=on_meta):
         accumulated_text.append(chunk)
         yield chunk
-        
-    # Append warnings after synthesis streams
-    final_text = "".join(accumulated_text)
+
     warnings_append = _append_warnings("", all_warnings)
     if warnings_append:
         yield warnings_append
