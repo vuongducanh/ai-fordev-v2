@@ -61,3 +61,54 @@ Tóm tắt luồng hệ thống và luồng A2A / LLM
 Kết luận
 
 File này tóm tắt luồng chính: Frontend -> Orchestrator -> (routing bằng rules hoặc LLM) -> gọi JSON-RPC tới agents (A2A) -> agents thực thi & emit events -> Orchestrator tổng hợp bằng LLM -> SSE streaming về UI. Nếu cần, có thể thêm sequence diagram, ví dụ payload đầy đủ, hoặc commit tài liệu này vào repo (đã tạo present.md).
+
+
+
+
+Luồng **chính (chat)** của dự án này đi như sau:
+
+1. **Frontend gửi request**
+   - `frontend/src/components/ChatView.tsx` gọi `chatStream(...)`
+   - `frontend/src/lib/api.ts` gửi `POST /chat` (SSE), body gồm `message` + `history`.
+
+2. **Backend nhận stream chat**
+   - `backend/app/orchestrator.py` endpoint `@orchestrator_router.post("/chat")`
+   - Tạo `StreamingResponse`, đẩy dần các event SSE: `status`, `meta`, `tool`, `delta`, `stats`, `done`.
+
+3. **Điều phối (routing)**
+   - `chat_stream_generator(...)` gọi `_route_decision(...)`
+   - Lấy danh sách agent đang `enabled + installed` từ `store`.
+   - Nếu không chọn agent nào → trả lời trực tiếp bằng orchestrator LLM (`llm.stream_text`).
+
+4. **Nếu có agent được chọn**
+   - `_run_agents(...)` chạy song song nhiều agent.
+   - Mỗi agent được gọi qua `call_agent(...)` bằng JSON-RPC tới:
+     - `POST /agents/{agent_id}`
+     - method: `SendMessage` (A2A).
+
+5. **A2A route trong backend**
+   - Được mount ở `backend/app/host.py` qua:
+     - `DefaultRequestHandler(...)`
+     - `create_jsonrpc_routes(..., rpc_url="/agents/{agent_id}")`
+   - Handler này sẽ gọi `AgentLLMExecutor`.
+
+6. **Executor xử lý request agent**
+   - `backend/app/agents/executor.py` (`AgentLLMExecutor.execute`)
+   - Đọc config agent từ store, dựng messages (system + user, kèm image nếu vision).
+   - Nếu có plugin: `run_with_tools(...)`.
+   - Nếu không: gọi model stream và gom text.
+   - Trả về A2A `Message` qua `event_queue`.
+
+7. **Orchestrator tổng hợp kết quả**
+   - Nhận reply từ các agent.
+   - `_synth_response(...)` gọi LLM điều phối để hợp nhất thành 1 câu trả lời cuối.
+   - Stream dần `delta` về frontend.
+
+8. **Frontend render realtime**
+   - `ChatView.tsx` nhận từng event SSE:
+     - `status` cập nhật trạng thái
+     - `meta` hiển thị routing/agents
+     - `tool` hiển thị tool usage
+     - `delta` nối nội dung trả lời
+     - `stats` hiển thị tốc độ/tokens
+     - `done` kết thúc phiên stream.
